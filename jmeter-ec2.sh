@@ -361,29 +361,29 @@ function runsetup() {
     # Create a working jmx file and edit it to adjust thread counts and filepaths (leave the original jmx intact!)
     cp $project_home/jmx/$project.jmx $project_home/working
     working_jmx="$project_home/working"
-    temp_jmx="$project_home/temp"
+    #temp_jmx="$project_home/temp"
 
     # first filepaths (this will help with things like csv files)
     # edit any 'stringProp filename=' references to use $REMOTE_DIR in place of whatever local path was being used
     # we assume that the required dat file is copied into the local /data directory
-    filepaths=$(awk 'BEGIN { FS = ">" } ; /<stringProp name=\"filename\">[^<]*<\/stringProp>/ {print $2}' $working_jmx | cut -d'<' -f1) # pull out filepath
-    i=1
-    while read filepath ; do
-        if [ -n "$filepath" ] ; then # this entry is not blank
-            # extract the filename from the filepath using '/' separator
-            filename=$( echo $filepath | awk -F"/" '{print $NF}' )
-            endresult="$REMOTE_HOME"/data/"$filename"
-            
-            # Replaced occurances of filename
-            sedcmd=`printf "sed -e 's:%s:%s:g'" ${filename} ${endresult}`
-            eval "$sedcmd" < $working_jmx  >  $temp_jmx
-            
-            rm $working_jmx
-            mv $temp_jmx $working_jmx
-        fi
-        # increment i
-        i=$((i+1))
-    done <<<"$filepaths"
+    #filepaths=$(awk 'BEGIN { FS = ">" } ; /<stringProp name=\"filename\">[^<]*<\/stringProp>/ {print $2}' $working_jmx | cut -d'<' -f1) # pull out filepath
+    #i=1
+    #while read filepath ; do
+    #    if [ -n "$filepath" ] ; then # this entry is not blank
+    #        # extract the filename from the filepath using '/' separator
+    #        filename=$( echo $filepath | awk -F"/" '{print $NF}' )
+    #        endresult="$REMOTE_HOME"/data/"$filename"
+    #        
+    #        # Replaced occurances of filename
+    #        sedcmd=`printf "sed -e 's:%s:%s:g'" ${filename} ${endresult}`
+    #        eval "$sedcmd" < $working_jmx  >  $temp_jmx
+    #        
+    #        rm $working_jmx
+    #        mv $temp_jmx $working_jmx
+    #    fi
+    #    # increment i
+    #    i=$((i+1))
+    #done <<<"$filepaths"
 
     # now we use the same working file to edit thread counts
     # to cope with the problem of trying to spread 10 threads over 3 hosts (10/3 has a remainder) the script creates a unique jmx for each host
