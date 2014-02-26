@@ -377,9 +377,9 @@ function runsetup() {
             # Replaced occurances of filename
             #sedcmd=`printf "sed -e 's:%s:%s:g'" ${filename} ${endresult}`
             #eval "$sedcmd" < $working_jmx  >  $temp_jmx
-            
-            rm $working_jmx
-            mv $temp_jmx $working_jmx
+   
+            #rm $working_jmx
+            #mv $temp_jmx $working_jmx
         fi
         # increment i
         i=$((i+1))
