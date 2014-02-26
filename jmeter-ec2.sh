@@ -561,7 +561,7 @@ function runsetup() {
 	    fi
 
 	    # scp any project specific custom jar files
-	    if [ -d $project_home/plugins ] && [ -n $(ls $project_home/plugins/) ] ; then # don't try to upload any files if none present
+	    #if [ -d $project_home/plugins ] && [ -n $(ls $project_home/plugins/) ] ; then # don't try to upload any files if none present
 	        echo -n "project specific jar file(s)..."
 	        for host in ${hosts[@]} ; do
 	            (scp -q -C -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
@@ -571,7 +571,7 @@ function runsetup() {
 	        done
 	        wait
 	        echo -n "done...."
-	    fi
+	    #fi
 
 		if [ ! -z "$DB_HOST" ] ; then
 			# upload import-results.sh
