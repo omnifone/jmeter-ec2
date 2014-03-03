@@ -626,6 +626,7 @@ function runsetup() {
         -i $PEM_PATH/$PEM_FILE $USER@${hosts[$counter]} \
         $REMOTE_HOME/$JMETER_VERSION/bin/jmeter.sh -n \
         -t $REMOTE_HOME/execute.jmx \
+        -J instanceId=$((counter+1)) \
         -l $REMOTE_HOME/$project-$DATETIME-$counter.jtl \
         >> $project_home/$DATETIME-${hosts[$counter]}-jmeter.out ) &
     done
