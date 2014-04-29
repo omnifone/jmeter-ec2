@@ -66,6 +66,9 @@ apache-jmeter-*)
     install_jmeter_plugins
     # install mysql jdbc driver
 	install_mysql_driver
+	# raise the maximum number of open file descriptors for ubuntu user
+	sudo bash -c "echo 'ubuntu hard nofile 65535' >> /etc/security/limits.conf"
+	sudo bash -c "echo 'ubuntu soft nofile 65535' >> /etc/security/limits.conf"
     ;;
     
 *)
