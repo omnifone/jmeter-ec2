@@ -71,6 +71,12 @@ LOCAL_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 project=$(basename `pwd`)
 project_home=`pwd`
 
+# If reporting is set to true, then we want jmeter to produce results in the csv.
+# If reporting is set to false, use a different jmeter.properties, so that jmeter produces an empty results csv
+if [ "$reporting" != "TRUE" ] ; then
+        cp $LOCAL_HOME/jmeter-no-reporting.properties $LOCAL_HOME/jmeter.properties
+fi
+
 # If exists then run a local version of the properties file to allow project customisations.
 if [ -f "$project_home/jmeter-ec2.properties" ] ; then
 	. $project_home/jmeter-ec2.properties
