@@ -12,7 +12,10 @@ JMETER_VERSION=$3
 
 
 function install_jmeter_plugins() {
-    wget -q -O $REMOTE_HOME/JMeterPlugins.jar https://s3.amazonaws.com/jmeter-ec2/JMeterPlugins.jar
+   # 29/09/2014 
+   # NO LONGER EXISTS @ https://s3.amazonaws.com/jmeter-ec2/JMeterPlugins.jar
+   # We copy the file with other custom plugins in github.com/omnifone/psplus-load-testing project now.
+   wget -q -O $REMOTE_HOME/JMeterPlugins.jar https://s3.amazonaws.com/jmeter-ec2/JMeterPlugins.jar
     mv $REMOTE_HOME/JMeterPlugins.jar $REMOTE_HOME/$JMETER_VERSION/lib/ext/
 }
 
@@ -53,7 +56,7 @@ jakarta-jmeter-2.5.1)
     wget -q -O $REMOTE_HOME/$JMETER_VERSION.tgz http://archive.apache.org/dist/jmeter/binaries/$JMETER_VERSION.tgz
     tar -xf $REMOTE_HOME/$JMETER_VERSION.tgz
     # install jmeter-plugins [http://code.google.com/p/jmeter-plugins/]
-    install_jmeter_plugins
+    #install_jmeter_plugins
     # install mysql jdbc driver
 	install_mysql_driver
     ;;
@@ -63,7 +66,7 @@ apache-jmeter-*)
     wget -q -O $REMOTE_HOME/$JMETER_VERSION.tgz http://archive.apache.org/dist/jmeter/binaries/$JMETER_VERSION.tgz
     tar -xf $REMOTE_HOME/$JMETER_VERSION.tgz
     # install jmeter-plugins [http://code.google.com/p/jmeter-plugins/]
-    install_jmeter_plugins
+    #install_jmeter_plugins
     # install mysql jdbc driver
 	install_mysql_driver
 	# raise the maximum number of open file descriptors for ubuntu user
