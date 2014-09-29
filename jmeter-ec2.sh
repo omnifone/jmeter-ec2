@@ -27,7 +27,7 @@ DATETIME=$(date "+%s")
 # First make sure we have the required params and if not print out an instructive message
 #if [ -z "$project" ] ; then
 if [ "$1" == "-h" ] ; then
-	echo 'usage: project="abc" percent=20 setup="TRUE" terminate="TRUE" count="3" env="UAT" release="3.23" comment="my notes" ./jmeter-ec2.sh'
+	echo 'usage: project="abc" percent=20 setup="TRUE" terminate="TRUE" count="3" env="UAT" release="3.23" comment="my notes" reporting="TRUE" ./jmeter-ec2.sh'
 	echo
 	echo "[project]         -	required, directory and jmx name"
 	echo "[count]           -	optional, default=1"
@@ -37,9 +37,13 @@ if [ "$1" == "-h" ] ; then
 	echo "[env]             -	optional"
 	echo "[release]         -	optional"
 	echo "[comment]         -	optional"
+	echo "[reporting]       -	optional, default='TRUE'"
 	echo
 	exit
 fi
+
+# default to TRUE if reporting is not specified
+if [ -z "$reporting" ] ; then reporting="TRUE" ; fi
 
 # Set any null parameters to '-'
 if [ -z "$env" ] ; then env="-" ; fi
@@ -66,6 +70,12 @@ LOCAL_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 project=$(basename `pwd`)
 project_home=`pwd`
+
+# If reporting is set to true, then we want jmeter to produce results in the csv.
+# If reporting is set to false, use a different jmeter.properties, so that jmeter produces an empty results csv
+if [ "$reporting" != "TRUE" ] ; then
+        cp $LOCAL_HOME/jmeter-no-reporting.properties $LOCAL_HOME/jmeter.properties
+fi
 
 # If exists then run a local version of the properties file to allow project customisations.
 if [ -f "$project_home/jmeter-ec2.properties" ] ; then
@@ -797,17 +807,19 @@ function runcleanup() {
 
 
     # download the results
-    for i in ${!hosts[@]} ; do
-        echo -n "downloading results from ${hosts[$i]}..."
-        scp -q -C -o UserKnownHostsFile=/dev/null \
-                                     -o StrictHostKeyChecking=no \
-                                     -i $PEM_PATH/$PEM_FILE \
-                                     -P $REMOTE_PORT \
-                                     $USER@${hosts[$i]}:$REMOTE_HOME/$project-*.jtl \
-                                     $project_home/
-        echo "$project_home/$project-$DATETIME-$i.jtl complete"
-    done
-    echo
+	if [ "$reporting" = "TRUE" ] ; then
+		for i in ${!hosts[@]} ; do
+			echo -n "downloading results from ${hosts[$i]}..."
+			scp -q -C -o UserKnownHostsFile=/dev/null \
+										-o StrictHostKeyChecking=no \
+										-i $PEM_PATH/$PEM_FILE \
+										-P $REMOTE_PORT \
+										$USER@${hosts[$i]}:$REMOTE_HOME/$project-*.jtl \
+										$project_home/
+			echo "$project_home/$project-$DATETIME-$i.jtl complete"
+		done
+		echo
+	fi
 
 
     # terminate any running instances created
@@ -821,55 +833,57 @@ function runcleanup() {
     fi
 
 
-    # process the files into one jtl results file
-    echo -n "processing results..."
-    for (( i=0; i<$instance_count; i++ )) ; do
-        cat $project_home/$project-$DATETIME-$i.jtl >> $project_home/$project-$DATETIME-grouped.jtl
-        rm $project_home/$project-$DATETIME-$i.jtl # removes the individual results files (from each host) - might be useful to some people to keep these files?
-    done
+	if [ "$reporting" = "TRUE" ] ; then
+		# process the files into one jtl results file
+		echo -n "processing results..."
+		for (( i=0; i<$instance_count; i++ )) ; do
+			cat $project_home/$project-$DATETIME-$i.jtl >> $project_home/$project-$DATETIME-grouped.jtl
+			rm $project_home/$project-$DATETIME-$i.jtl # removes the individual results files (from each host) - might be useful to some people to keep these files?
+		done
 
-	# Srt File
-    sort $project_home/$project-$DATETIME-grouped.jtl >> $project_home/$project-$DATETIME-sorted.jtl
+		# Srt File
+		sort $project_home/$project-$DATETIME-grouped.jtl >> $project_home/$project-$DATETIME-sorted.jtl
 
-    # Insert TESTID
-    if [ ! -z "$DB_HOST" ] ; then
-        awk -v v_testid="$newTestid," '{print v_testid,$0}' $project_home/$project-$DATETIME-sorted.jtl >> $project_home/$project-$DATETIME-appended.jtl
-	else
-        mv $project_home/$project-$DATETIME-sorted.jtl $project_home/$project-$DATETIME-appended.jtl
-    fi
+		# Insert TESTID
+		if [ ! -z "$DB_HOST" ] ; then
+			awk -v v_testid="$newTestid," '{print v_testid,$0}' $project_home/$project-$DATETIME-sorted.jtl >> $project_home/$project-$DATETIME-appended.jtl
+		else
+			mv $project_home/$project-$DATETIME-sorted.jtl $project_home/$project-$DATETIME-appended.jtl
+		fi
 
-	# Remove blank lines
-	sed '/^$/d' $project_home/$project-$DATETIME-appended.jtl >> $project_home/$project-$DATETIME-noblanks.jtl
+		# Remove blank lines
+		sed '/^$/d' $project_home/$project-$DATETIME-appended.jtl >> $project_home/$project-$DATETIME-noblanks.jtl
 
-    # Split the thread label into two columns
-    #sed 's/ \([0-9][0-9]*-[0-9][0-9]*,\)/,\1/' \
-    #                  $project_home/$project-$DATETIME-sorted.jtl >> \
-    #                  $project_home/$project-$DATETIME-complete.jtl
+		# Split the thread label into two columns
+		#sed 's/ \([0-9][0-9]*-[0-9][0-9]*,\)/,\1/' \
+		#                  $project_home/$project-$DATETIME-sorted.jtl >> \
+		#                  $project_home/$project-$DATETIME-complete.jtl
 
-	# Remove any lines containing "0,0,Error:" - which seems to be an intermittant bug in JM where the getTimestamp call fails with a nullpointer
-	sed '/^0,0,Error:/d' $project_home/$project-$DATETIME-noblanks.jtl >> $project_home/$project-$DATETIME-complete.jtl
+		# Remove any lines containing "0,0,Error:" - which seems to be an intermittant bug in JM where the getTimestamp call fails with a nullpointer
+		sed '/^0,0,Error:/d' $project_home/$project-$DATETIME-noblanks.jtl >> $project_home/$project-$DATETIME-complete.jtl
 
-	# Calclulate test duration
-	start_time=$(head -1 $project_home/$project-$DATETIME-complete.jtl | cut -d',' -f2)
-	end_time=$(tail -1 $project_home/$project-$DATETIME-complete.jtl | cut -d',' -f2)
-	duration=$(echo "$end_time-$start_time" | bc)
-	if [ ! $duration > 0 ] ; then
-		duration=0;
+		# Calculate test duration
+		start_time=$(head -1 $project_home/$project-$DATETIME-complete.jtl | cut -d',' -f2)
+		end_time=$(tail -1 $project_home/$project-$DATETIME-complete.jtl | cut -d',' -f2)
+		duration=$(echo "$end_time-$start_time" | bc)
+		if [ ! $duration > 0 ] ; then
+			duration=0;
+		fi
+
+		if [ ! -z "$DB_HOST" ] ; then
+			# mark test as complete in database
+			updateTest 2 "$newTestid" "$duration"
+		fi
+
+		# Tidy up
+		if [ -e "$project_home/$project-$DATETIME-grouped.jtl" ] ; then rm $project_home/$project-$DATETIME-grouped.jtl ; fi
+		if [ -e "$project_home/$project-$DATETIME-sorted.jtl" ] ; then rm $project_home/$project-$DATETIME-sorted.jtl ; fi
+		if [ -e "$project_home/$project-$DATETIME-appended.jtl" ] ; then rm $project_home/$project-$DATETIME-appended.jtl ; fi
+		if [ -e "$project_home/$project-$DATETIME-noblanks.jtl" ] ; then rm $project_home/$project-$DATETIME-noblanks.jtl ; fi
+		mkdir -p $project_home/results/
+		mv $project_home/$project-$DATETIME-complete.jtl $project_home/results/
 	fi
-
-	if [ ! -z "$DB_HOST" ] ; then
-		# mark test as complete in database
-		updateTest 2 "$newTestid" "$duration"
-	fi
-
-	# Tidy up
-    if [ -e "$project_home/$project-$DATETIME-grouped.jtl" ] ; then rm $project_home/$project-$DATETIME-grouped.jtl ; fi
-    if [ -e "$project_home/$project-$DATETIME-sorted.jtl" ] ; then rm $project_home/$project-$DATETIME-sorted.jtl ; fi
-    if [ -e "$project_home/$project-$DATETIME-appended.jtl" ] ; then rm $project_home/$project-$DATETIME-appended.jtl ; fi
-    if [ -e "$project_home/$project-$DATETIME-noblanks.jtl" ] ; then rm $project_home/$project-$DATETIME-noblanks.jtl ; fi
-    mkdir -p $project_home/results/
-    mv $project_home/$project-$DATETIME-complete.jtl $project_home/results/
-
+	
 	#***************************************************************************
 	# IMPORT RESULTS TO MYSQL DATABASE - IF SPECIFIED IN PROPERTIES
 	# scp import-results.sh
