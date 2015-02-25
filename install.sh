@@ -30,6 +30,9 @@ cd $REMOTE_HOME
 if [ $INSTALL_JAVA -eq 1 ] ; then
     # install java
 	
+	#fix locking bug
+	sudo rm /var/lib/apt/lists/* -vf 
+	
 	#ubuntu
 	sudo apt-get update #update apt-get
 	sudo DEBIAN_FRONTEND=noninteractive apt-get -qqy install default-jre
