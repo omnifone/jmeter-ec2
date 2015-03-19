@@ -579,7 +579,9 @@ function runsetup() {
 	        wait
 	        echo -n "done...."
 	    fi
-
+		
+			
+			
 	    # scp any project specific custom jar files
 	    #if [ -d $project_home/plugins ] && [ -n $(ls $project_home/plugins/) ] ; then # don't try to upload any files if none present
 	        echo -n "project specific jar file(s)..."
@@ -593,6 +595,21 @@ function runsetup() {
 	        echo -n "done...."
 	    #fi
 
+		
+		# scp mssSniffedRequests.txt file
+	    if [ -r /home/jcross/mssSniffedRequests.txt ] ; then # don't try to upload this optional file if it is not present
+	        echo -n "mssSniffedRequests.txt.."
+	        for host in ${hosts[@]} ; do
+	            (scp -q -C -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
+	                                          -i $PEM_PATH/$PEM_FILE -P $REMOTE_PORT \
+	                                          /home/jcross/mssSniffedRequests.txt \
+	                                          $USER@$host:$REMOTE_HOME/data/mssSniffedRequests.txt) &
+	        done
+	        wait
+	        echo -n "done...."
+	    fi
+		
+		
 		if [ ! -z "$DB_HOST" ] ; then
 			# upload import-results.sh
 		    echo -n "copying import-results.sh to database..."
