@@ -597,17 +597,17 @@ function runsetup() {
 
 		
 		# scp mssSniffedRequests.txt file
-	    if [ -r /scratch/jenkins/.ssh/mssSniffedRequests.txt ] ; then # don't try to upload this optional file if it is not present
-	        echo -n "mssSniffedRequests.txt.."
+	    if [ -r /scratch/jenkins/.ssh/mssSniffedData.txt ] ; then # don't try to upload this optional file if it is not present
+	        echo -n "mssSniffedData.txt.."
 	        for host in ${hosts[@]} ; do
 	            (scp -q -C -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
 	                                          -i $PEM_PATH/$PEM_FILE -P $REMOTE_PORT \
-	                                          /scratch/jenkins/.ssh/mssSniffedRequests.txt \
-	                                          $USER@$host:$REMOTE_HOME/data/mssSniffedRequests.txt) &
+	                                          /scratch/jenkins/.ssh/mssSniffedData.txt \
+	                                          $USER@$host:$REMOTE_HOME/data/mssSniffedData.txt) &
 	        done
 	        wait
 	        echo -n "done...."
-	    fi
+	   fi
 		
 		
 		if [ ! -z "$DB_HOST" ] ; then
