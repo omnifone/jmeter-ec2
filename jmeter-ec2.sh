@@ -603,7 +603,7 @@ function runsetup() {
 	            (scp -q -C -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
 	                                          -i $PEM_PATH/$PEM_FILE -P $REMOTE_PORT \
 	                                          /scratch/jenkins/.ssh/mssSniffedData.txt \
-	                                          $USER@$host:$REMOTE_HOME/data/mssSniffedData.txt) &
+	                                          $USER@$host:$REMOTE_HOME/data/) &
 	        done
 	        wait
 	        echo -n "done...."
