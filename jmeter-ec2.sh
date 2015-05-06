@@ -535,7 +535,7 @@ function runsetup() {
                 ( ssh -nq -o StrictHostKeyChecking=no \
                  -p $REMOTE_PORT \
                  -i $PEM_PATH/$PEM_FILE $USER@$host \
-                 "gunzip -q $REMOTE_HOME/data/*.gz" ) &
+                 "gunzip -q $REMOTE_HOME/data/*/*.gz" ) &
             done
             wait
             echo -n "done...."			
