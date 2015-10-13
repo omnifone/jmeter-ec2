@@ -518,12 +518,13 @@ function runsetup() {
     echo -n "done...."
 
     # shuffle search terms
+	echo -n "Shuffling searchTerms..."
 	find "$project_home/data/." -name "*searchTerms*.csv" |
 	while read filename
 	do
-		echo "Shuffling $filename..."
 		shuf $filename -o $filename
 	done
+	echo -n "done...."
 	
 	# scp data dir
     if [ "$setup" = "TRUE" ] ; then
