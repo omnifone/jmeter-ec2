@@ -517,7 +517,15 @@ function runsetup() {
     wait
     echo -n "done...."
 
-    # scp data dir
+    # shuffle search terms
+	find "$project_home/data/." -name "*searchTerms*.csv" |
+	while read filename
+	do
+		echo "Shuffling $filename..."
+		shuf $filename -o $filename
+	done
+	
+	# scp data dir
     if [ "$setup" = "TRUE" ] ; then
     	if [ -r $project_home/data ] ; then # don't try to upload this optional dir if it is not present
 	        echo -n "data dir.."
